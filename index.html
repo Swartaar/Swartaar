@@ -3241,7 +3241,6 @@ footer { background: linear-gradient(180deg,#A0703C,#6B4423) !important; }
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#youtube">▶ YouTube</a></li>
       <li><a href="#subscribe">Subscribe</a></li>
-      <li><a href="#path" class="nav-cta">Start Free</a></li>
     </ul>
   </div>
 </nav>
@@ -4439,6 +4438,10 @@ footer { background: linear-gradient(180deg,#A0703C,#6B4423) !important; }
     </div>
     <div class="footer-bottom">
       <div class="footer-copy">© 2025 SwarTaar. Made with ❤️ for India.</div>
+      <div class="footer-legal-links">
+        <a href="#terms">Terms of Service</a>
+        <a href="#privacy">Privacy Policy</a>
+      </div>
       <div class="footer-devanagari">Music belongs to everyone.</div>
     </div>
   </div>
@@ -8438,6 +8441,8 @@ renderSongOfWeek();
     home:      { sel:['.hero', '#hub', '#home-try', '#tuner'], nav:null },
     pricing:   { sel:['#pricing'],                            nav:null },
     journey:   { sel:['#journey'],                            nav:null },
+    terms:     { sel:['#terms'],                              nav:null },
+    privacy:   { sel:['#privacy'],                            nav:null },
     path:      { sel:['#path', '#progress', '.tips-section'], nav:'#path' },
     sargam:    { sel:['#sargam', '#sargamtabs', '#scales'],   nav:'#sargam' },
     songs:     { sel:['#chords', '#songs', '#tabs'],          nav:'#songs' },
@@ -8958,10 +8963,9 @@ renderSongOfWeek();
     if(isPremium()){ try{ window.SwarUI && SwarUI.toast('✓','You are already Premium','Enjoy everything!'); }catch(e){} return; }
     const p=PRICE[plan];
     if(!RAZORPAY_KEY){
-      openModal('<div class="pm-title">Payments not set up yet</div>'+
-        '<div class="pm-sub">To accept real payments, add your Razorpay <b>Key ID</b> in the code (one line near the top of the premium engine). Until then you can preview the unlock experience.</div>'+
-        '<button class="pm-go" onclick="SwarPremium._previewGrant(\''+plan+'\')">Preview Premium (test unlock)</button>'+
-        '<div class="pm-msg">This test unlock is for you to see the experience — remove before launch.</div>');
+      openModal('<div class="pm-title">Premium is coming soon</div>'+
+        '<div class="pm-sub">Online payments aren\'t live yet, so Premium can\'t be purchased right now. If you have a coupon code, enter it on the pricing page to unlock Premium.</div>'+
+        '<button class="pm-go" onclick="SwarPremium.closeModal(); window.SwarRouter && SwarRouter.open(\'pricing\')">Enter a coupon code</button>');
       return;
     }
     if(typeof Razorpay==='undefined'){ try{ window.SwarUI && SwarUI.toast('⚠️','Payment library still loading','Please try again in a moment.'); }catch(e){} return; }
@@ -8997,6 +9001,7 @@ renderSongOfWeek();
           if(tog) head.insertBefore(b,tog); else head.appendChild(b); }
         else if(st==='locked-prev'){ const b=document.createElement('span'); b.className='lesson-lock-badge step'; b.textContent='🔒 Locked';
           if(tog) head.insertBefore(b,tog); else head.appendChild(b); }
+        if(tog && st!=='open') tog.textContent='🔒';
       }
       // gate footer inside open lessons of the free path
       if(st==='open' && level==='beginner' && i<FREE_LESSON_COUNT){
@@ -9160,8 +9165,8 @@ renderSongOfWeek();
   window.SwarPremium = {
     isPremium, subscribe, setBilling, refresh, closeModal, redeemCoupon,
     _done:markDone, _startTimer:startTimer, _quiz:quiz, _pick:pick, _submitQuiz:submitQuiz,
-    _previewGrant:function(plan){ if(grant(PRICE[plan]?PRICE[plan].days:30, plan)){ refresh(); closeModal();
-      try{ window.SwarUI && SwarUI.toast('🎉','Premium unlocked (preview)','Everything is open. Remove the test before launch.'); }catch(e){} } }
+    _previewGrant:function(){ closeModal(); try{ window.SwarRouter && SwarRouter.open('pricing'); }catch(e){} },
+    revoke:function(){ const u=user(); if(!u) return false; const users=rawGet('swartaar_users',{}); if(users[u.uid]){ delete users[u.uid].premiumUntil; delete users[u.uid].plan; users[u.uid].premium=false; rawSet('swartaar_users',users); refresh(); } return true; }
   };
 
   function boot(){ patch(); setTimeout(refresh, 60); }
@@ -9346,6 +9351,421 @@ renderSongOfWeek();
     filter:drop-shadow(0 16px 40px rgba(255,122,26,0.34)); }
   @media (min-width:1280px){ .hero-side-logo{ display:block; } }
 </style>
+
+
+<!-- nav fit on one line + earlier hamburger + hide level-complete card -->
+<style id="nav-fit-css">
+  .nav-inner{ max-width:1700px; gap:.55rem; }
+  .nav-links{ gap:.85rem !important; flex-wrap:nowrap; align-items:center; }
+  .nav-links li{ flex:0 0 auto; }
+  .nav-links a{ font-size:.88rem !important; white-space:nowrap; }
+  .brandwm .bw-word{ font-size:1.3rem; }
+  .nav-cta, .sw-prem-btn, .sw-loginbtn{ white-space:nowrap; }
+
+  /* Collapse the long menu into the hamburger before it can wrap */
+  @media (max-width:1289px){
+    nav .nav-links{ display:none !important; }
+    nav .sw-burger{ display:inline-flex !important; }
+    .nav-inner{ gap:.45rem; }
+    .logo{ margin-right:auto; }
+    nav .sw-burger{ margin-left:0 !important; order:9; }
+    nav #sw-nav-item{ margin-left:0 !important; order:8; }
+    #sw-prem-btn{ order:7; }
+    nav.sw-mnav-open .nav-links{
+      display:flex !important; flex-direction:column; gap:1.1rem !important;
+      position:absolute; top:100%; left:0; right:0; background:#fff; border-top:1px solid var(--border);
+      padding:1.2rem 1.5rem 1.5rem; box-shadow:0 18px 44px rgba(42,26,14,.16); z-index:1100; max-height:78vh; overflow:auto;
+    }
+    nav.sw-mnav-open .nav-links a{ font-size:1.05rem !important; }
+    nav.sw-mnav-open .nav-tone-menu{ position:static; box-shadow:none; border:1px solid var(--border); margin-top:.4rem; }
+  }
+
+  /* Hidden for now — the level-complete celebration shows before it's wired to real completion. */
+  .level-challenge{ display:none !important; }
+</style>
+
+
+<!-- ════════════ TERMS OF SERVICE + PRIVACY POLICY ════════════ -->
+<style id="legal-css">
+  .legal-section{ max-width:820px; margin:0 auto; padding:3rem 1.5rem 4.5rem; }
+  .legal-wrap{ margin-top:1.5rem; }
+  .legal-wrap h3{ font-family:'Playfair Display',serif; font-size:1.32rem; color:var(--text-primary); margin:1.7rem 0 .5rem; }
+  .legal-wrap p, .legal-wrap li{ color:var(--text-secondary); line-height:1.72; font-size:1.02rem; }
+  .legal-wrap ul{ margin:.4rem 0 .6rem 1.25rem; }
+  .legal-wrap li{ margin-bottom:.35rem; }
+  .legal-wrap strong{ color:var(--text-primary); }
+  .legal-updated{ color:var(--text-muted); font-family:'JetBrains Mono',monospace; font-size:.74rem; letter-spacing:.05em; text-transform:uppercase; }
+  .legal-note{ background:rgba(255,122,26,0.06); border:1px solid rgba(255,122,26,0.22); border-radius:12px; padding:1rem 1.1rem; margin:1.2rem 0; font-size:.96rem; color:var(--text-secondary); }
+  .footer-legal-links{ display:flex; gap:1.3rem; justify-content:center; margin:.5rem 0; flex-wrap:wrap; }
+  .footer-legal-links a{ color:inherit; text-decoration:underline; font-size:.92rem; cursor:pointer; }
+</style>
+
+<!-- TERMS OF SERVICE -->
+<section class="legal-section" id="terms">
+  <div class="section-header reveal">
+    <div class="section-tag">Legal</div>
+    <h2 class="section-title">Terms of <em>Service</em></h2>
+  </div>
+  <div class="legal-wrap">
+    <p class="legal-updated">Last updated: [DATE]</p>
+
+    <h3>1. Acceptance of these terms</h3>
+    <p>SwarTaar ("SwarTaar", "we", "us", "our") provides an online guitar-learning platform at swartaar.com. By creating an account or using the site, you agree to these Terms of Service. If you do not agree, please do not use SwarTaar.</p>
+
+    <h3>2. Who may use SwarTaar</h3>
+    <p>You must be at least 18 years old to create an account on your own. If you are under 18, you may use SwarTaar only with the involvement and consent of a parent or legal guardian, who accepts these terms on your behalf.</p>
+
+    <h3>3. Your account</h3>
+    <ul>
+      <li>You agree to provide accurate information and to verify your email address when asked.</li>
+      <li>You are responsible for keeping your password secure and for all activity under your account.</li>
+      <li>Accounts are personal. Please don't share your login or let others use your subscription.</li>
+      <li>Tell us promptly if you believe your account has been accessed without permission.</li>
+    </ul>
+
+    <h3>4. Free and Premium plans</h3>
+    <p>SwarTaar offers free content and a paid <strong>Premium</strong> subscription. Premium prices are shown on the pricing page and are billed through our payment partner. We may change features or prices, and will give reasonable notice of price changes for existing subscribers.</p>
+
+    <h3>5. Payments, renewals and refunds</h3>
+    <ul>
+      <li>Payments are processed securely by our third-party payment provider. We do not store your full card details.</li>
+      <li>Subscriptions continue for the period you purchase. You can cancel at any time; cancellation stops future charges and your Premium access continues until the end of the paid period.</li>
+      <li><strong>Refund policy:</strong> [Choose one and state it clearly, e.g. "We offer a 7-day refund on first purchase" or "Payments are non-refundable except where required by law."]</li>
+    </ul>
+
+    <h3>6. Acceptable use</h3>
+    <p>When using SwarTaar you agree not to: misuse or disrupt the service; copy, scrape, resell or redistribute our content; attempt to bypass payment or access controls; or use the site for any unlawful purpose.</p>
+
+    <h3>7. Our content</h3>
+    <p>The lessons, text, designs, the SwarTaar name and logo, and original material on the site are owned by SwarTaar and protected by law. We grant you a personal, non-commercial licence to use them for your own learning. You may not reproduce or distribute them without our permission.</p>
+
+    <h3>8. Songs, lyrics, chords and tabs</h3>
+    <p>References to songs, song titles, chords and tablature are provided purely for education and practice. The rights to the underlying musical works, compositions and lyrics belong to their respective owners. If you are a rights holder and believe material should be removed, contact us at [CONTACT EMAIL] and we will review and remove it promptly.</p>
+
+    <h3>9. Disclaimer</h3>
+    <p>SwarTaar is provided "as is". We aim to keep it accurate and available, but we do not guarantee uninterrupted access, error-free content, or any particular learning outcome. Learning to play an instrument depends on your own practice.</p>
+
+    <h3>10. Limitation of liability</h3>
+    <p>To the maximum extent permitted by law, SwarTaar is not liable for any indirect or consequential loss arising from your use of the service. Our total liability to you will not exceed the amount you paid us in the three months before the event giving rise to the claim.</p>
+
+    <h3>11. Indemnity</h3>
+    <p>You agree to indemnify SwarTaar against claims arising from your misuse of the service or your breach of these terms.</p>
+
+    <h3>12. Suspension and termination</h3>
+    <p>We may suspend or close accounts that breach these terms or misuse the service. You may close your account at any time.</p>
+
+    <h3>13. Changes to these terms</h3>
+    <p>We may update these terms from time to time. We will post the updated version here with a new date. Continuing to use SwarTaar after changes means you accept them.</p>
+
+    <h3>14. Governing law</h3>
+    <p>These terms are governed by the laws of India, and any disputes will be subject to the courts of [CITY], India.</p>
+
+    <h3>15. Contact</h3>
+    <p>Questions about these terms? Email us at [CONTACT EMAIL].</p>
+  </div>
+</section>
+
+<!-- PRIVACY POLICY -->
+<section class="legal-section" id="privacy">
+  <div class="section-header reveal">
+    <div class="section-tag">Legal</div>
+    <h2 class="section-title">Privacy <em>Policy</em></h2>
+  </div>
+  <div class="legal-wrap">
+    <p class="legal-updated">Last updated: [DATE]</p>
+    <p>This policy explains what information SwarTaar collects, how we use it, and your choices. We respect your privacy and only collect what we need to run the service.</p>
+
+    <h3>1. Information we collect</h3>
+    <ul>
+      <li><strong>Information you give us:</strong> your name, email address, and a password when you create an account. Passwords are handled securely by our authentication provider and are not stored by us in readable form.</li>
+      <li><strong>Information we collect as you learn:</strong> your lesson progress, practice streaks, badges, bookmarks and similar activity, so we can save your journey.</li>
+      <li><strong>Payment information:</strong> if you buy Premium, payment is handled by our payment provider. We receive confirmation of payment but do not store your full card details.</li>
+      <li><strong>Technical information:</strong> basic device and browser information, and data stored in your browser (local storage) to keep you signed in and remember your settings.</li>
+    </ul>
+
+    <h3>2. How we use your information</h3>
+    <p>To create and secure your account, verify your email, save your progress, process payments, provide support, improve SwarTaar, and send you important service messages.</p>
+
+    <h3>3. Your consent</h3>
+    <p>We process your personal data with your consent and in accordance with India's Digital Personal Data Protection Act, 2023. You can withdraw consent by closing your account.</p>
+
+    <h3>4. Who we share data with</h3>
+    <p>We do <strong>not</strong> sell your personal data. We share it only with trusted service providers who help us run SwarTaar, and only as needed:</p>
+    <ul>
+      <li><strong>Google Firebase</strong> — for secure sign-in, email verification and storing your account data.</li>
+      <li><strong>Our payment provider</strong> — to process Premium payments.</li>
+      <li><strong>Our website host</strong> — to deliver the site to you.</li>
+    </ul>
+
+    <h3>5. Cookies and local storage</h3>
+    <p>We use your browser's local storage (and similar technologies) to keep you logged in and remember your progress and preferences. We don't use them for advertising.</p>
+
+    <h3>6. How long we keep data</h3>
+    <p>We keep your data while your account is active. If you ask us to delete your account, we will remove your personal data, except anything we must keep by law.</p>
+
+    <h3>7. Your rights</h3>
+    <p>You may ask to access, correct, or delete your personal data, or to withdraw consent. To do so, email us at [CONTACT EMAIL].</p>
+
+    <h3>8. Children's privacy</h3>
+    <p>SwarTaar is intended for general audiences. If you are under 18, please use it only with a parent or guardian's consent. We do not knowingly collect personal data from young children without such consent; if you believe a child has provided us data, contact us and we will remove it.</p>
+
+    <h3>9. Security</h3>
+    <p>We use reasonable technical measures to protect your data. However, no method of transmission or storage is completely secure, and we cannot guarantee absolute security.</p>
+
+    <h3>10. International processing</h3>
+    <p>Our providers (such as Google) may process data on servers located outside India. By using SwarTaar, you consent to this processing.</p>
+
+    <h3>11. Changes to this policy</h3>
+    <p>We may update this policy and will post the new version here with an updated date.</p>
+
+    <h3>12. Contact &amp; grievances</h3>
+    <p>For any privacy question or grievance, contact [GRIEVANCE OFFICER NAME] at [CONTACT EMAIL].</p>
+  </div>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!--  SWARTAAR · FIREBASE AUTH (email verification) + FIRESTORE             -->
+<!--  Overrides SwarAuth signup/login to use Firebase, keeps all existing   -->
+<!--  progress/badges/premium working, bridged by the Firebase user id.     -->
+<!--  Fails open: if the SDK can't load, the original local accounts work.  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+  if(typeof firebase==='undefined' || !firebase.initializeApp){
+    console.warn('[SwarTaar] Firebase SDK not loaded — using local accounts.'); return;
+  }
+  var firebaseConfig = {
+    apiKey: "AIzaSyABl1zQJzi9xgyNRGxyfZoUmGR6kKUdf2g",
+    authDomain: "swartaar-ec52e.firebaseapp.com",
+    projectId: "swartaar-ec52e",
+    storageBucket: "swartaar-ec52e.firebasestorage.app",
+    messagingSenderId: "660988087120",
+    appId: "1:660988087120:web:b23406b17d89fd7470fa55"
+  };
+  var auth, db;
+  try{ firebase.initializeApp(firebaseConfig); auth=firebase.auth(); db=firebase.firestore(); }
+  catch(e){ console.warn('[SwarTaar] Firebase init failed — using local accounts.', e); return; }
+
+  // ── small helpers ──
+  function rawGet(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} }
+  function rawSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function rawDel(k){ try{ localStorage.removeItem(k);}catch(e){} }
+  function $(id){ return document.getElementById(id); }
+  function toast(i,t,s){ try{ window.SwarUI && SwarUI.toast(i,t,s);}catch(e){} }
+  function authChange(b){ try{ window.SwarUI && SwarUI.onAuthChange(b);}catch(e){} }
+  function profileRef(uid){ return db.collection('users').doc(uid); }
+  function errMsg(code){
+    switch(code){
+      case 'auth/email-already-in-use': return 'That email already has an account — try logging in instead.';
+      case 'auth/invalid-email': return 'That email address looks invalid.';
+      case 'auth/weak-password': return 'Password is too weak — use at least 6 characters.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential': return 'Email or password is incorrect.';
+      case 'auth/too-many-requests': return 'Too many attempts — please wait a moment and try again.';
+      case 'auth/network-request-failed': return 'Network error — please check your connection.';
+      default: return null;
+    }
+  }
+
+  // ── bridge a verified Firebase user into the existing local account system ──
+  function bridgeLocal(u, data){
+    var users=rawGet('swartaar_users',{}); var uid=u.uid; var ex=users[uid]||{};
+    users[uid]=Object.assign({}, ex, {
+      uid:uid,
+      name:(data&&data.name)||u.displayName||ex.name||'Learner',
+      email:u.email||ex.email||'',
+      emoji:(data&&data.emoji)||ex.emoji||'🎸',
+      verified:true,
+      premiumUntil:(data&&data.premiumUntil)||ex.premiumUntil||0,
+      plan:(data&&data.plan)||ex.plan||null
+    });
+    rawSet('swartaar_users',users);
+    rawSet('swartaar_session',{uid:uid});
+    window.__swarUid=uid;
+  }
+  function pushPremium(){
+    try{
+      var u=auth.currentUser; if(!u) return;
+      var rec=(rawGet('swartaar_users',{})||{})[u.uid]; if(!rec) return;
+      profileRef(u.uid).set({ premiumUntil:rec.premiumUntil||0, plan:rec.plan||null },{merge:true});
+    }catch(e){}
+  }
+
+  // ── progress cloud-sync (all per-user keys ↔ Firestore) ──
+  var upTimer=null;
+  function nsPrefix(uid){ return 'u_'+uid+'_'; }
+  function collectState(uid){
+    var p=nsPrefix(uid), out={};
+    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i);
+      if(k && k.indexOf(p)===0){ var lk=k.slice(p.length), raw=localStorage.getItem(k);
+        try{ out[lk]=JSON.parse(raw); }catch(e){ out[lk]=raw; } } } }catch(e){}
+    return out;
+  }
+  function applyCloudState(uid, state){
+    if(!state) return false; var p=nsPrefix(uid), changed=false;
+    try{ Object.keys(state).forEach(function(k){ var full=p+k, nv=JSON.stringify(state[k]);
+      if(localStorage.getItem(full)!==nv){ localStorage.setItem(full,nv); changed=true; } }); }catch(e){}
+    return changed;
+  }
+  function uploadState(uid){
+    try{ if(!uid) return; profileRef(uid).set({ state:collectState(uid),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp() },{merge:true}); }catch(e){}
+  }
+  function scheduleUpload(){
+    try{ var u=auth.currentUser; if(!u||!u.emailVerified) return; var uid=u.uid;
+      if(upTimer) clearTimeout(upTimer); upTimer=setTimeout(function(){ uploadState(uid); },1500); }catch(e){}
+  }
+  function syncDown(uid, data){
+    var st=data && data.state;
+    if(st && Object.keys(st).length){
+      var changed=applyCloudState(uid, st);
+      if(changed && !sessionStorage.getItem('swar_synced_'+uid)){
+        try{ sessionStorage.setItem('swar_synced_'+uid,'1'); }catch(e){}
+        location.reload(); return true;
+      }
+    } else { uploadState(uid); }
+    try{ sessionStorage.setItem('swar_synced_'+uid,'1'); }catch(e){}
+    return false;
+  }
+  function hookStore(){
+    if(window.storeSet && !window.storeSet.__swarSync){
+      var o=window.storeSet;
+      window.storeSet=function(){ var r=o.apply(this,arguments); scheduleUpload(); return r; };
+      window.storeSet.__swarSync=true;
+    }
+  }
+
+  // ════════ override signup ════════
+  window.SwarAuth.doSignup = async function(){
+    var name=(($('sw-su-name')||{}).value||'').trim();
+    var email=(($('sw-su-email')||{}).value||'').trim().toLowerCase();
+    var pass=($('sw-su-pass')||{}).value||'';
+    var msg=$('sw-su-msg');
+    function err(t){ if(msg){ msg.style.color='var(--red)'; msg.textContent=t; } }
+    if(name.length<2) return err('Please tell us your name.');
+    if(!email.includes('@')||!email.includes('.')) return err('Enter a valid email address.');
+    if(pass.length<6) return err('Password needs at least 6 characters.');
+    var emojiEl=document.querySelector('#sw-emoji-row .sel, #sw-emoji-row .active, #sw-emoji-row [aria-pressed="true"]');
+    var emoji=(emojiEl&&emojiEl.textContent.trim())||'🎸';
+    if(msg){ msg.style.color='var(--text-muted)'; msg.textContent='Creating your account…'; }
+    try{
+      var cred=await auth.createUserWithEmailAndPassword(email,pass);
+      var u=cred.user;
+      try{ await u.updateProfile({displayName:name}); }catch(e){}
+      try{ await profileRef(u.uid).set({ name:name, email:email, emoji:emoji, premiumUntil:0, plan:null,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp() },{merge:true}); }catch(e){}
+      try{ await u.sendEmailVerification(); }catch(e){}
+      try{ await auth.signOut(); }catch(e){}
+      if(msg){ msg.style.color='var(--flag-green)';
+        msg.innerHTML='✓ Account created! We\u2019ve emailed a verification link to <b>'+email+'</b>. Open it, then log in.'; }
+      try{ window.SwarAuth.showTab('login');
+        var lm=$('sw-li-msg'); if(lm){ lm.style.color='var(--flag-green)'; lm.textContent='Check your email and verify, then log in here.'; }
+        var le=$('sw-li-email'); if(le) le.value=email; }catch(e){}
+    }catch(e){ err(errMsg(e.code)||'Could not create the account. Please try again.'); }
+  };
+
+  // ════════ override login (blocked until verified) ════════
+  window.SwarAuth.doLogin = async function(){
+    var email=(($('sw-li-email')||{}).value||'').trim().toLowerCase();
+    var pass=($('sw-li-pass')||{}).value||'';
+    var msg=$('sw-li-msg');
+    function err(t){ if(msg){ msg.style.color='var(--red)'; msg.innerHTML=t; } }
+    if(!email||!pass){ return err('Enter your email and password.'); }
+    if(msg){ msg.style.color='var(--text-muted)'; msg.textContent='Logging in…'; }
+    try{
+      var cred=await auth.signInWithEmailAndPassword(email,pass);
+      var u=cred.user; try{ await u.reload(); }catch(e){} u=auth.currentUser||u;
+      if(!u.emailVerified){
+        try{ await u.sendEmailVerification(); }catch(e){}
+        try{ await auth.signOut(); }catch(e){}
+        return err('Please verify your email first. We\u2019ve re-sent a link to <b>'+email+'</b> — open it, then log in.');
+      }
+      var data=null;
+      try{ var snap=await profileRef(u.uid).get();
+        if(snap.exists) data=snap.data();
+        else { await profileRef(u.uid).set({ name:u.displayName||'Learner', email:u.email, premiumUntil:0 },{merge:true}); }
+      }catch(e){}
+      bridgeLocal(u,data);
+      try{ window.SwarAuth.closeModal(); }catch(e){}
+      if(syncDown(u.uid, data)) return;
+      authChange(true);
+      try{ window.SwarPremium && SwarPremium.refresh(); }catch(e){}
+      try{ window.SwarJourney && SwarJourney.render(); }catch(e){}
+      toast('🎸','Welcome back, '+((data&&data.name)||u.displayName||'')+'!','');
+    }catch(e){ err(errMsg(e.code)||'Could not log in. Please check your details.'); }
+  };
+
+  // ════════ logout ════════
+  window.SwarAuth.logout = function(){
+    try{ auth.signOut(); }catch(e){}
+    rawDel('swartaar_session'); window.__swarUid='';
+    authChange(false);
+    toast('👋','Logged out','See you soon!');
+  };
+
+  // ════════ forgot password → Firebase reset email ════════
+  window.SwarAuth.doForgotFind = async function(){
+    var email=(($('sw-fp-email')||{}).value||'').trim().toLowerCase();
+    var msg=$('sw-fp-msg');
+    function set(c,t){ if(msg){ msg.style.color=c; msg.textContent=t; } }
+    if(!email.includes('@')) return set('var(--red)','Enter your account email.');
+    try{ await auth.sendPasswordResetEmail(email);
+      set('var(--flag-green)','Password reset link sent! Check your email.');
+      var s2=$('sw-fp-step2'); if(s2) s2.style.display='none';
+    }catch(e){ set('var(--red)', errMsg(e.code)||'Could not send the reset email.'); }
+  };
+  window.SwarAuth.doReset = function(){
+    var msg=$('sw-fp-msg'); if(msg){ msg.style.color='var(--text-muted)'; msg.textContent='Use the reset link we emailed you to set a new password.'; }
+  };
+
+  // ════════ keep verified users logged in (and sync across devices) ════════
+  auth.onAuthStateChanged(async function(u){
+    if(u && u.emailVerified){
+      var data=null; try{ var snap=await profileRef(u.uid).get(); if(snap.exists) data=snap.data(); }catch(e){}
+      bridgeLocal(u,data);
+      if(syncDown(u.uid, data)) return;
+      authChange(true);
+      try{ window.SwarPremium && SwarPremium.refresh(); }catch(e){}
+      try{ window.SwarJourney && SwarJourney.render(); }catch(e){}
+    }
+    // If signed out / unverified we leave any existing local (legacy) session untouched.
+  });
+
+  // ════════ sync premium (e.g. coupon) up to Firestore ════════
+  function wrapPremiumSync(){
+    if(window.SwarPremium && window.SwarPremium.redeemCoupon && !window.SwarPremium.__fbWrapped){
+      var orig=window.SwarPremium.redeemCoupon;
+      window.SwarPremium.redeemCoupon=function(){ var r=orig.apply(this,arguments); setTimeout(pushPremium,200); return r; };
+      window.SwarPremium.__fbWrapped=true;
+    }
+  }
+
+  // ════════ UI: this is now real cloud auth, not browser-only ════════
+  function tweakUI(){
+    // hide the old security-question fields (Firebase uses email reset now)
+    ['sw-su-secq','sw-su-seca'].forEach(function(id){ var el=$(id); if(el){ var f=el.closest('.sw-field'); if(f) f.style.display='none'; } });
+    var fp=document.querySelector('#sw-pane-signup .sw-fineprint');
+    if(fp) fp.textContent='We\u2019ll email you a verification link to confirm your account. Your progress then saves securely to your account and follows you across devices.';
+    var sub=$('sw-auth-sub'); if(sub) sub.textContent='Create an account to save your progress, streaks, songs and badges across devices.';
+    wrapPremiumSync();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', tweakUI); else tweakUI();
+  setTimeout(wrapPremiumSync, 1200);
+
+  // progress cloud-sync hooks
+  hookStore();
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden'){ try{ var u=auth.currentUser; if(u&&u.emailVerified) uploadState(u.uid); }catch(e){} } });
+  window.addEventListener('pagehide', function(){ try{ var u=auth.currentUser; if(u&&u.emailVerified) uploadState(u.uid); }catch(e){} });
+
+  console.log('[SwarTaar] Firebase auth + Firestore + progress sync active.');
+})();
+</script>
 
 </body>
 </html>
